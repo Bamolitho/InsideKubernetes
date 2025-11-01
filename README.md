@@ -113,7 +113,7 @@ minikube start --driver=virtualbox
 
 Sortie attendue :
 
-```
+```basic
 😄  minikube v1.37.0 sur Ubuntu 24.04
 ✨  Utilisation du pilote virtualbox basé sur la configuration de l'utilisateur
 💿  Téléchargement de l'image de démarrage de la VM...
