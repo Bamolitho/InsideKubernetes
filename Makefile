@@ -136,7 +136,18 @@ push:
 # ==============================
 
 ## Relance tout de zéro (dev)
-reset-dev: clean start-minikube build deploy-dev open
+reset-dev: 
+	clean start-minikube build deploy-dev open
 
 ## Relance tout de zéro (prod)
-reset-prod: clean start-minikube build deploy-prod open
+reset-prod: 	
+	clean start-minikube build deploy-prod open
+
+
+# ==============================
+# (7) POUSSER SUR GITHUB
+# ==============================
+github:
+	git add .
+	git commit -m "InsideK8S"
+	git push
