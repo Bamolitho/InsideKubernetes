@@ -1,6 +1,6 @@
 # Comprendre l'architecture de Kubernetes avec Minikube
 
-Quand on lance Minikube, plusieurs conteneurs apparaissent dans `docker ps`. Ce document explique à quoi ils servent et comment ils s'organisent pour faire fonctioner un cluster Kubernetes complet sur une machine locale.
+Quand on lance Minikube, plusieurs conteneurs apparaissent dans `docker ps`. Ce document explique à quoi ils servent et comment ils s'organisent pour faire fonctionner un cluster Kubernetes complet sur une machine locale.
 
 ------
 
@@ -170,7 +170,7 @@ C’est **le cerveau** du cluster.
 | Conteneur                 | Rôle                                                         |
 | ------------------------- | ------------------------------------------------------------ |
 | `kube-apiserver`          | - C’est **l’API centrale** de Kubernetes. <br />- Tous les outils (`kubectl`, `dashboard`, etc.) passent par lui.. <br />- C’est le **cerveau du cluster**, celui qui reçoit et applique les ordres (déployer un pod, exposer un service, etc.). |
-| `etcd`                    | - C’est la **base de données clé-valeur** du cluster. - Il stocke **tout l’état du cluster** (pods, services, secrets, configs...). - Si on perd `etcd`, on perd la mémoire de son cluster. |
+| `etcd`                    | - C’est la **base de données clé-valeur** du cluster. <br />- Il stocke **tout l’état du cluster** (pods, services, secrets, configs...). <br />- Si on perd `etcd`, on perd la mémoire de son cluster. |
 | `kube-controller-manager` | - Vérifie en continu que **l’état réel = état désiré**  <br />- Il gère les **boucles de contrôle** (“control loops”) qui maintiennent l’état du cluster.<br /> - **Exemple** : si un pod crash, le controller le recrée. |
 | `kube-scheduler`          | - Il décide **sur quel nœud** (machine virtuelle, minikube ici) exécuter chaque pod. <br />- Il se base sur les ressources disponibles, les affinités, etc. |
 
@@ -272,15 +272,15 @@ Kubernetes, via `kube-proxy`, redirige le trafic du Service `flask-service` vers
                                           │
                 ┌─────────────────────────┼─────────────────────────┐
                 │                         │                         │
-     ╔══════════════════════╗             │              ╔══════════════════════╗
+     ╔═══════════════════════╗            │              ╔══════════════════════╗
      ║ Namespace: kube-system║            │              ║ Namespace: default   ║
-     ╚══════════════════════╝             │              ╚══════════════════════╝
+     ╚═══════════════════════╝            │              ╚══════════════════════╝
                 │                         │                      │
- ┌──────────────────────────────────┐    │       ┌──────────────────────────────┐
- │         PLAN DE CONTRÔLE         │    │       │     APPLICATION FLASK        │
- └──────────────────────────────────┘    │       └──────────────────────────────┘
+ ┌──────────────────────────────────┐     │       ┌──────────────────────────────┐
+ │         PLAN DE CONTRÔLE         │     │       │     APPLICATION FLASK        │
+ └──────────────────────────────────┘     │       └──────────────────────────────┘
  │  • kube-apiserver      → point d'entrée API   				 │
- │  • etcd                → base de données clés 				 │
+ │  • etcd                → base de données clés:valeurs		 │
  │  • controller-manager  → maintient l'état désiré				 |
  │  • scheduler           → planifie les Pods   			     │
  │                                              			     │
