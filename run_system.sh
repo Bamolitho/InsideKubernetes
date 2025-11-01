@@ -1,3 +1,6 @@
+# Start Minikube
+minikube start
+
 # Dis à ton terminal d’utiliser le Docker de Minikube
 eval $(minikube docker-env)
 
@@ -13,3 +16,9 @@ docker images | grep flask-hello
 # Supprime les pods en erreur et relance le déploiement
 kubectl delete pod --all
 kubectl apply -f flask-deployment.yaml
+
+# Expose le service
+kubectl expose deployment flask-deployment --type=NodePort --port=5600
+
+# Récupère l'URL pour accéder à l'application
+minikube service flask-deployment --url
