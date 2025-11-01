@@ -183,7 +183,17 @@ restart-docker:
 	sudo systemctl restart docker
 
 # ==============================
-# (9) AIDE
+# (9) AUTRES
+# ==============================
+# Show project structure
+tree:
+	@echo "Project Structure:"
+	@echo "=================="
+	@tree -I '__pycache__|*.pyc|outputs' -L 4 2>/dev/null || \
+	(ls -R | grep ":$$" | sed -e 's/:$$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/')
+
+# ==============================
+# (10) AIDE
 # ==============================
 help:
 	@echo "Commandes disponibles:"
@@ -213,3 +223,4 @@ help:
 	@echo "Utilitaires:"
 	@echo "  make restart-docker     - Redémarrer Docker"
 	@echo "  make github             - Pousser sur GitHub"
+	@echo "	 make tree				 - Donner la structure du projet"
