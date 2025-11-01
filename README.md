@@ -327,7 +327,21 @@ deployment.apps/flask-deployment   3/3     3            3           5m3s
 
 NAME                                          DESIRED   CURRENT   READY   AGE
 replicaset.apps/flask-deployment-6dbf944f88   3         3         3       5m3s
+```
 
+**Supprimer tout d'un coup**
+```bash
+kubectl delete all -l app=flask-app
+```
+
+**Sortie attendue:** 
+
+```basic
+amolitho@amolitho:~/InsideKubernetes$ kubectl delete all -l app=flask-app
+pod "flask-deployment-6dbf944f88-58xwl" deleted
+pod "flask-deployment-6dbf944f88-clslf" deleted
+pod "flask-deployment-6dbf944f88-f4sfs" deleted
+replicaset.apps "flask-deployment-6dbf944f88" deleted
 ```
 
 ## Résumé des concepts pratiqués
