@@ -52,7 +52,7 @@ sudo apt-get install -y kubectl
 
 Vérifier la version :
 
-```less
+```basic
 kubectl version --client
 ```
 
@@ -67,7 +67,13 @@ Kustomize Version: v5.0.4-0.20230601165947-6ce0bf390ce3
 
 Minikube crée un cluster Kubernetes local sur la machine. C'est la solution idéale pour débuter, car elle montre clairement le fonctionnement d'un vrai cluster Kubernetes avec un master et un worker.
 
-**Attention importante concernant VirtualBox**
+###### Installer VirtualBox
+
+```bash
+sudo apt install -y virtualbox virtualbox-ext-pack
+```
+
+#### **Attention importante concernant VirtualBox**
 
 La commande `sudo apt install -y virtualbox virtualbox-ext-pack` réinstalle VirtualBox depuis les dépôts Ubuntu, ce qui peut remplacer ou écraser la version actuelle si elle avait été installée manuellement depuis le site d'Oracle ou via un autre dépôt. C'est pour ça que VirtualBox peut "disparaître" ou devenir inutilisable après cette commande.
 
