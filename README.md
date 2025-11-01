@@ -147,7 +147,7 @@ kubectl get nodes
 
 Sortie attendue :
 
-```
+```basic
 NAME       STATUS   ROLES           AGE     VERSION
 minikube   Ready    control-plane   2m20s   v1.34.0
 ```
@@ -177,7 +177,7 @@ chmod +x install_kubernetes_env.sh
 ./install_kubernetes_env.sh
 ```
 
-**Ou plus simplement **(via Makefile)
+**Ou plus simplement** (via Makefile)
 
 ```bash
 make install-k8s_env
@@ -191,7 +191,7 @@ Le script ne réinstallera jamais un composant déjà présent. Il affichera sim
 ### Créer un dossier de projet
 
 ```bash
-mkdir flask-on-kubernetes && cd flask-on-kubernetes
+mkdir flask-on-kubernetes/app && cd flask-on-kubernetes/app
 ```
 
 ### Fichier app.py
@@ -324,7 +324,7 @@ kubectl get pods
 
 Sortie attendue :
 
-```
+```basic
 NAME                                READY   STATUS    RESTARTS   AGE
 flask-deployment-6cc97d48bc-d55nm   1/1     Running   0          67s
 flask-deployment-6cc97d48bc-qv9c6   1/1     Running   0          67s
@@ -342,7 +342,7 @@ kubectl expose deployment flask-deployment --type=NodePort --port=5600
 
 Sortie attendue :
 
-```
+```basic
 service/flask-deployment exposed
 ```
 
@@ -354,7 +354,7 @@ kubectl get services
 
 Sortie attendue :
 
-```
+```basic
 NAME               TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
 flask-deployment   NodePort    10.96.241.63   <none>        5600:31181/TCP   29s
 kubernetes         ClusterIP   10.96.0.1      <none>        443/TCP          8m4s
@@ -374,7 +374,7 @@ minikube service flask-deployment --url
 
 Sortie attendue :
 
-```
+```basic
 http://192.168.x.y:31181
 ```
 
@@ -392,7 +392,7 @@ kubectl get pods
 
 Sortie :
 
-```
+```basic
 NAME                                READY   STATUS    RESTARTS   AGE
 flask-deployment-6cc97d48bc-d55nm   1/1     Running   0          5m24s
 flask-deployment-6cc97d48bc-qv9c6   1/1     Running   0          5m24s
@@ -406,7 +406,7 @@ kubectl delete pod flask-deployment-6cc97d48bc-qv9c6
 
 Sortie :
 
-```
+```basic
 pod "flask-deployment-6cc97d48bc-qv9c6" deleted
 ```
 
@@ -418,7 +418,7 @@ kubectl get pods
 
 Sortie :
 
-```
+```basic
 NAME                                READY   STATUS    RESTARTS   AGE
 flask-deployment-6cc97d48bc-d55nm   1/1     Running   0          6m27s
 flask-deployment-6cc97d48bc-mlvjg   1/1     Running   0          43s
@@ -440,7 +440,7 @@ minikube stop
 
 Sortie attendue :
 
-```
+```basic
 service "flask-deployment" deleted
 deployment.apps "flask-deployment" deleted
 ✋  Nœud d'arrêt "minikube" ...
@@ -463,7 +463,7 @@ deployment.apps "flask-deployment" deleted
 
 ## Architecture de déploiement
 
-```
+```basic
 [ Navigateur ]
         │
         ▼
