@@ -6,7 +6,7 @@
 - Déployer une **application Flask**
 - La gérer via un **Deployment**
 - L’exposer via un **Service**
-- Et la visualiser dans ton **navigateur via Minikube**
+- Et la visualiser dans son **navigateur via Minikube**
 
 ------
 
@@ -52,13 +52,13 @@ sudo apt-get install -y kubectl
 
 Vérifier la version :
 
-```bash
+```less
 kubectl version --client
 ```
 
 Sortie attendue :
 
-```
+```basic
 Client Version: v1.30.14
 Kustomize Version: v5.0.4-0.20230601165947-6ce0bf390ce3
 ```
