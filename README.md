@@ -307,6 +307,29 @@ Commandes utiles:
 
 
 
+**Voir toutes les ressources : *kubectl get all***
+
+**Sortie attendue:** 
+
+```basic
+amolitho@amolitho:~/InsideKubernetes$ kubectl get all
+NAME                                    READY   STATUS    RESTARTS   AGE
+pod/flask-deployment-6dbf944f88-58xwl   1/1     Running   0          5m2s
+pod/flask-deployment-6dbf944f88-clslf   1/1     Running   0          5m2s
+pod/flask-deployment-6dbf944f88-f4sfs   1/1     Running   0          5m2s
+
+NAME                    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+service/flask-service   NodePort    10.102.5.179   <none>        5600:31181/TCP   5m3s
+service/kubernetes      ClusterIP   10.96.0.1      <none>        443/TCP          5d1h
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/flask-deployment   3/3     3            3           5m3s
+
+NAME                                          DESIRED   CURRENT   READY   AGE
+replicaset.apps/flask-deployment-6dbf944f88   3         3         3       5m3s
+
+```
+
 ## Résumé des concepts pratiqués
 
 | Élément            | Rôle                                                         |
