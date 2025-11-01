@@ -329,7 +329,7 @@ NAME                                          DESIRED   CURRENT   READY   AGE
 replicaset.apps/flask-deployment-6dbf944f88   3         3         3       5m3s
 ```
 
-**Supprimer tout d'un coup**
+**Tenter de supprimer tout d'un coup**
 ```bash
 kubectl delete all -l app=flask-app
 ```
@@ -342,6 +342,58 @@ pod "flask-deployment-6dbf944f88-58xwl" deleted
 pod "flask-deployment-6dbf944f88-clslf" deleted
 pod "flask-deployment-6dbf944f88-f4sfs" deleted
 replicaset.apps "flask-deployment-6dbf944f88" deleted
+```
+**Vérifie toutes les ressources à nouveau : *kubectl get all***
+
+**Sortie attendue:** 
+
+```basic
+amolitho@amolitho:~/InsideKubernetes$ kubectl get all
+NAME                                    READY   STATUS    RESTARTS   AGE
+pod/flask-deployment-6dbf944f88-4zsfs   1/1     Running   0          3m4s
+pod/flask-deployment-6dbf944f88-72spq   1/1     Running   0          3m4s
+pod/flask-deployment-6dbf944f88-scpwn   1/1     Running   0          3m4s
+
+NAME                    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+service/flask-service   NodePort    10.102.5.179   <none>        5600:31181/TCP   13m
+service/kubernetes      ClusterIP   10.96.0.1      <none>        443/TCP          5d1h
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/flask-deployment   3/3     3            3           13m
+
+NAME                                          DESIRED   CURRENT   READY   AGE
+replicaset.apps/flask-deployment-6dbf944f88   3         3         3       3m4s
+```
+Le résultat montre quelque chose d’important : Le Deployment flask-deployment n’a pas été supprimé, donc Kubernetes a automatiquement recréé trois nouveaux pods pour le remplacer.
+
+En clair : On a supprimé les pods et le replica set, mais pas le Deployment, du coup, Kubernetes a détecté qu’il “manquait” des pods et les a recréés selon la définition du déploiement.
+
+C’est le comportement normal et voulu d’un Deployment : il garantit qu’un nombre fixe de pods tourne en permanence.
+
+Si on veut tout supprimer réellement, exécute :
+```bash
+kubectl delete deployment flask-deployment
+kubectl delete service flask-service
+```
+
+Ensuite vérifie :
+```bash
+kubectl get all
+```
+On ne verra alors plus ni pods, ni deployment, ni service liés à ton app Flask.
+```basic
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   5d1h
+```
+On n’a plus que le service “kubernetes”, qui est généré automatiquement par le système pour permettre la communication interne entre les composants du cluster, c’est normal et on ne dois pas le supprimer.
+
+Tout le reste (pods, services, déploiements Flask) a bien été supprimé.
+
+L'environnement est donc prêt à :
+
+être redéployé proprement (make auto-deploy-prod ou make auto-deploy-dev selon le besoin), ou être arrêté proprement via :
+```bash
+minikube stop
 ```
 
 ## Résumé des concepts pratiqués
