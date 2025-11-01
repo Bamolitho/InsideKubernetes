@@ -170,16 +170,6 @@ Voici ce qu'il fait :
 **Pour l'utiliser :**
 
 ```bash
-# Rendre le script exécutable
-chmod +x install_kubernetes_env.sh
-
-# Lancer l'installation
-./install_kubernetes_env.sh
-```
-
-**Ou plus simplement** (via Makefile)
-
-```bash
 make install-k8s_env
 ```
 
@@ -191,52 +181,20 @@ Le script ne réinstallera jamais un composant déjà présent. Il affichera sim
 ### Créer un dossier de projet
 
 ```bash
-mkdir flask-on-kubernetes/app && cd flask-on-kubernetes/app
+mkdir InsideKubernetes/app && cd InsideKubernetes/app
 ```
 
 ### Fichier app.py
 
-```python
-from flask import Flask
-app = Flask(__name__)
-
-@app.route('/')
-def hello():
-    return "Hello World from Kubernetes!"
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5600)
-```
+Contenu : [app.py](./app/app.py)
 
 ### Fichier requirements.txt
 
-```
-flask==3.0.0
-```
+Contenu : [requirements.txt](./requirements.txt)
 
 ### Fichier Dockerfile
 
-```dockerfile
-# Image de base
-FROM python:3.10-slim
-
-# Définir le répertoire de travail
-WORKDIR /app
-
-# Copier les fichiers nécessaires
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY /app .
-
-# Exposer le port 5600
-EXPOSE 5600
-
-# Commande de lancement
-ENTRYPOINT [ "python" ]
-CMD [ "app.py" ]
-
-```
+Contenu : [Dockerfile](./Dockerfile)
 
 ### Construire et tester l'image Docker
 
@@ -254,200 +212,100 @@ docker run -p 5600:5600 flask-hello:1.0
 
 Ouvrir le navigateur sur `http://localhost:5600`. Le message `Hello World from Kubernetes!` doit s'afficher.
 
-### Utiliser le Docker de Minikube
-
-Lancer `./run_system.sh` ou exécuter chacune des commandes suivantes manuellement l'une après l'autre :
-
-```bash
-# Dire au terminal d'utiliser le Docker de Minikube
-eval $(minikube docker-env)
-
-# Vérifier que Docker pointe bien sur Minikube
-docker info | grep "Name"
-
-# Rebuild l'image dans Minikube
-docker build -t flask-hello:1.0 .
-
-# Vérifier que l'image est bien dans Minikube
-docker images | grep flask-hello
-```
-
 ------
 
 ## Étape 3 : Déployer sur Kubernetes
 
-### Création du Deployment
+Deux modes de déploiment possible : 
 
-Créer un fichier `flask-deployment.yaml` :
+1. **Développement** : lancer automatiquement le script [run_system.sh](./run_system.sh) en mode dev
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: flask-deployment
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: flask-app
-  template:
-    metadata:
-      labels:
-        app: flask-app
-    spec:
-      containers:
-        - name: flask-container
-          image: flask-hello:1.0
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 5600
-```
+   ```bash
+   make auto-deploy-dev
+   ```
 
-Appliquer la configuration :
+2. **Production **: lancer automatiquement le script [run_system.sh](./run_system.sh) en mode prod
 
-```bash
-kubectl apply -f flask-deployment.yaml
-```
+   ```bash
+   make auto-deploy-prod
+   ```
 
-Si des pods sont en erreur, les supprimer et relancer le déploiement :
+------
 
-```bash
-kubectl delete pod --all
-kubectl apply -f flask-deployment.yaml
-```
-
-Vérifier les pods :
-
-```bash
-kubectl get pods
-```
-
-Sortie attendue :
+#### Sortie attendue pour make auto-deploy-prod :
 
 ```basic
+amolitho@amolitho:~/InsideKubernetes$ make auto-deploy-prod 
+chmod +x run_system.sh
+./run_system.sh --prod
+==========================================
+Déploiement en environnement: PROD
+==========================================
+
+[1/6] Vérification de Minikube...
+Démarrage de Minikube...
+😄  minikube v1.37.0 sur Ubuntu 24.04
+✨  Utilisation du pilote virtualbox basé sur le profil existant
+👍  Démarrage du nœud "minikube" primary control-plane dans le cluster "minikube"
+🔄  Redémarrage du virtualbox VM existant pour "minikube" ...
+🐳  Préparation de Kubernetes v1.34.0 sur Docker 28.4.0...
+🔗  Configuration de bridge CNI (Container Networking Interface)...
+🔎  Vérification des composants Kubernetes...
+    ▪ Utilisation de l'image gcr.io/k8s-minikube/storage-provisioner:v5
+🌟  Modules activés: default-storageclass, storage-provisioner
+
+❗  /usr/bin/kubectl est la version 1.30.14, qui peut comporter des incompatibilités avec Kubernetes 1.34.0.
+    ▪ Vous voulez kubectl v1.34.0 ? Essayez 'minikube kubectl -- get pods -A'
+🏄  Terminé ! kubectl est maintenant configuré pour utiliser "minikube" cluster et espace de noms "default" par défaut.
+✓ Minikube démarré
+
+[2/6] Configuration de Docker pour Minikube...
+✓ Docker pointe sur: minikube
+
+[3/6] Build de l'image Docker...
+✓ Image flask-hello:1.0 existe déjà, skip du build
+✓ Image flask-hello:1.0 disponible
+
+[4/6] Nettoyage des anciennes ressources...
+Aucune ressource à supprimer
+
+[5/6] Déploiement Kubernetes (prod)...
+configmap/flask-config created
+secret/flask-secret created
+service/flask-service created
+deployment.apps/flask-deployment created
+Attente du démarrage des pods...
+pod/flask-deployment-6dbf944f88-58xwl condition met
+pod/flask-deployment-6dbf944f88-clslf condition met
+pod/flask-deployment-6dbf944f88-f4sfs condition met
+⚠ Timeout ou pods pas encore prêts, vérifiez avec 'kubectl get pods'
+
+[6/6] État du déploiement:
+==========================
 NAME                                READY   STATUS    RESTARTS   AGE
-flask-deployment-6cc97d48bc-d55nm   1/1     Running   0          67s
-flask-deployment-6cc97d48bc-qv9c6   1/1     Running   0          67s
+flask-deployment-6dbf944f88-58xwl   1/1     Running   0          60s
+flask-deployment-6dbf944f88-clslf   1/1     Running   0          60s
+flask-deployment-6dbf944f88-f4sfs   1/1     Running   0          60s
+
+NAME            TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+flask-service   NodePort    10.102.5.179   <none>        5600:31181/TCP   61s
+
+==========================================
+✓ Application déployée avec succès!
+==========================================
+
+URL d'accès:
+http://192.168.59.101:31181
+
+Commandes utiles:
+  minikube service flask-service      # Ouvrir dans le navigateur
+  kubectl logs -l app=flask-app       # Voir les logs
+  kubectl get all                     # Voir toutes les ressources
+  make delete-prod                  # Nettoyer
+==========================================
 ```
 
-Deux Pods `flask-deployment-...` doivent être en cours d'exécution.
 
-### Exposer le Service
-
-Kubernetes ne permet pas d'accéder directement à un Pod, donc il faut l'exposer via un Service :
-
-```bash
-kubectl expose deployment flask-deployment --type=NodePort --port=5600
-```
-
-Sortie attendue :
-
-```basic
-service/flask-deployment exposed
-```
-
-Vérifier les services :
-
-```bash
-kubectl get services
-```
-
-Sortie attendue :
-
-```basic
-NAME               TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
-flask-deployment   NodePort    10.96.241.63   <none>        5600:31181/TCP   29s
-kubernetes         ClusterIP   10.96.0.1      <none>        443/TCP          8m4s
-```
-
-Un port du type 30000–32767 est ouvert.
-
-------
-
-## Étape 4 : Accéder à l'application
-
-Récupérer l'URL :
-
-```bash
-minikube service flask-deployment --url
-```
-
-Sortie attendue :
-
-```basic
-http://192.168.x.y:31181
-```
-
-Ouvrir le lien dans le navigateur. Le message `Hello World from Kubernetes!` doit s'afficher.
-
-------
-
-## Étape 5 : Vérifier la haute disponibilité
-
-Arrêter un pod :
-
-```bash
-kubectl get pods
-```
-
-Sortie :
-
-```basic
-NAME                                READY   STATUS    RESTARTS   AGE
-flask-deployment-6cc97d48bc-d55nm   1/1     Running   0          5m24s
-flask-deployment-6cc97d48bc-qv9c6   1/1     Running   0          5m24s
-```
-
-Supprimer un pod :
-
-```bash
-kubectl delete pod flask-deployment-6cc97d48bc-qv9c6
-```
-
-Sortie :
-
-```basic
-pod "flask-deployment-6cc97d48bc-qv9c6" deleted
-```
-
-Vérifier à nouveau les pods :
-
-```bash
-kubectl get pods
-```
-
-Sortie :
-
-```basic
-NAME                                READY   STATUS    RESTARTS   AGE
-flask-deployment-6cc97d48bc-d55nm   1/1     Running   0          6m27s
-flask-deployment-6cc97d48bc-mlvjg   1/1     Running   0          43s
-```
-
-Kubernetes recrée automatiquement un pod pour maintenir 2 réplicas. C'est le restart automatique géré par le Deployment.
-
-------
-
-## Étape 6 : Nettoyage
-
-Pour supprimer tous les éléments créés :
-
-```bash
-kubectl delete service flask-deployment
-kubectl delete deployment flask-deployment
-minikube stop
-```
-
-Sortie attendue :
-
-```basic
-service "flask-deployment" deleted
-deployment.apps "flask-deployment" deleted
-✋  Nœud d'arrêt "minikube" ...
-🛑  1 nœud arrêté.
-```
-
-------
 
 ## Résumé des concepts pratiqués
 

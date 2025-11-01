@@ -1,5 +1,5 @@
 # ===================================
-# (O) Installer l'environnement k8s
+# (0) Installer l'environnement k8s
 # ===================================
 
 install-k8s_env:
@@ -26,7 +26,7 @@ K8S_PROD = k8s/overlays/prod
 # (2) GESTION DES IMAGES & CONTENEURS DOCKER
 # ===========================================
 
-## Build l’image Docker localement
+## Build l'image Docker localement
 build:
 	docker build -t $(IMAGE) .
 
@@ -41,10 +41,10 @@ images:
 
 ## Supprime le conteneur
 delete:
-	docker stop $(APP_NAME)
-	docker rm $(APP_NAME)
+	docker stop $(APP_NAME) || true
+	docker rm $(APP_NAME) || true
 
-## Supprime l’image locale
+## Supprime l'image locale
 clean:
 	docker rmi -f $(IMAGE) || true
 
@@ -62,7 +62,7 @@ minikube-env:
 docker-pointer:
 	docker info | grep "Name"
 
-## 1. Lance Minikube (si pas encore démarré)
+## Lance Minikube (si pas encore démarré)
 start-minikube:
 	minikube start --driver=virtualbox
 	minikube status
@@ -76,59 +76,63 @@ start-minikube:
 ## Déploie en environnement DEV
 deploy-dev:
 	kubectl apply -k $(K8S_DEV)
+	kubectl wait --for=condition=ready pod -l app=flask-app --timeout=60s || true
 	kubectl get all
 
 ## Déploie en environnement PROD
 deploy-prod:
 	kubectl apply -k $(K8S_PROD)
+	kubectl wait --for=condition=ready pod -l app=flask-app --timeout=60s || true
 	kubectl get all
-
-## Expose le service
-expose:
-	kubectl expose deployment flask-deployment --type=NodePort --port=5600
 
 ## Récupère l'URL pour accéder à l'application
 get-url:
-	minikube service flask-deployment --url
+	minikube service flask-service --url
 
 ## Supprime les ressources DEV
 delete-dev:
-	kubectl delete -k $(K8S_DEV)
+	kubectl delete -k $(K8S_DEV) || true
+	kubectl delete service flask-deployment 2>/dev/null || true
 
 ## Supprime les ressources PROD
 delete-prod:
-	kubectl delete -k $(K8S_PROD)
+	kubectl delete -k $(K8S_PROD) || true
+	kubectl delete service flask-deployment 2>/dev/null || true
 
 ## Affiche les pods et services
 status:
-	kubectl get pods,svc
+	kubectl get pods,svc,configmap,secret
 
-## Ouvre l’application dans le navigateur via Minikube
+## Ouvre l'application dans le navigateur via Minikube
 open:
 	minikube service flask-service
-
 
 
 # ==============================
 # (4.1) NETTOYAGE
 # ==============================
 
-## Arreter k8s
+## Arrêter k8s et tout nettoyer
 k8s-clean:
-	kubectl delete service flask-deployment
-	kubectl delete deployment flask-deployment
+	kubectl delete -k $(K8S_DEV) 2>/dev/null || true
+	kubectl delete -k $(K8S_PROD) 2>/dev/null || true
+	kubectl delete service flask-deployment 2>/dev/null || true
 	minikube stop
+
+## Nettoyage complet (supprime aussi Minikube)
+k8s-purge:
+	minikube delete
 
 
 # ==============================
 # (5) PUSH / AUTOMATION
 # ==============================
 
-## Push l’image vers un registre (optionnel)
+## Push l'image vers un registre (optionnel)
 push:
 	# docker tag $(IMAGE) $(REGISTRY)/$(IMAGE)
 	# docker push $(REGISTRY)/$(IMAGE)
-	@echo "Pousse ton image avec 'docker push' si nécessaire."
+	@echo "Pousse l'image avec 'docker push' si nécessaire."
 
 
 # ==============================
@@ -136,12 +140,28 @@ push:
 # ==============================
 
 ## Relance tout de zéro (dev)
-reset-dev: 
-	clean start-minikube build deploy-dev open
+reset-dev: delete-dev
+	$(MAKE) start-minikube
+	eval $$(minikube docker-env) && $(MAKE) build
+	$(MAKE) deploy-dev
+	$(MAKE) open
 
 ## Relance tout de zéro (prod)
-reset-prod: 	
-	clean start-minikube build deploy-prod open
+reset-prod: delete-prod
+	$(MAKE) start-minikube
+	eval $$(minikube docker-env) && $(MAKE) build
+	$(MAKE) deploy-prod
+	$(MAKE) open
+
+## Déploiement automatique avec script
+auto-deploy-dev:
+	chmod +x run_system.sh
+	./run_system.sh --dev
+
+## Déploiement automatique avec script
+auto-deploy-prod:
+	chmod +x run_system.sh
+	./run_system.sh --prod
 
 
 # ==============================
@@ -149,5 +169,47 @@ reset-prod:
 # ==============================
 github:
 	git add .
-	git commit -m "InsideK8S"
+	git commit -m "InsideKubernetes"
 	git push
+
+# ==============================
+# (8) RÉDÉMARRER DOCKER
+# ==============================
+restart-docker:
+	sudo systemctl restart docker.service
+	sleep 5
+	sudo systemctl restart docker.socket
+	sleep 5
+	sudo systemctl restart docker
+
+# ==============================
+# (9) AIDE
+# ==============================
+help:
+	@echo "Commandes disponibles:"
+	@echo ""
+	@echo "Installation:"
+	@echo "  make install-k8s_env    - Installer l'environnement Kubernetes"
+	@echo ""
+	@echo "Docker local:"
+	@echo "  make build              - Builder l'image Docker"
+	@echo "  make launch             - Lancer le conteneur localement"
+	@echo "  make delete             - Supprimer le conteneur"
+	@echo "  make clean              - Supprimer l'image"
+	@echo ""
+	@echo "Kubernetes:"
+	@echo "  make start-minikube     - Démarrer Minikube"
+	@echo "  make deploy-dev         - Déployer en dev"
+	@echo "  make deploy-prod        - Déployer en prod"
+	@echo "  make auto-deploy-dev    - Déploiement automatique dev"
+	@echo "  make auto-deploy-prod   - Déploiement automatique prod"
+	@echo "  make delete-dev         - Supprimer ressources dev"
+	@echo "  make delete-prod        - Supprimer ressources prod"
+	@echo "  make status             - Voir l'état des ressources"
+	@echo "  make get-url            - Obtenir l'URL de l'application"
+	@echo "  make open               - Ouvrir l'application"
+	@echo "  make k8s-clean          - Arrêter et nettoyer k8s"
+	@echo ""
+	@echo "Utilitaires:"
+	@echo "  make restart-docker     - Redémarrer Docker"
+	@echo "  make github             - Pousser sur GitHub"
